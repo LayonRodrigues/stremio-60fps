@@ -154,6 +154,27 @@ log instead. In standalone mpv the messages show normally.
 
 ---
 
+## YouTube
+
+mpv ships `ytdl_hook.lua`, so it plays a YouTube URL directly and the same
+filter applies. Requires [yt-dlp](https://github.com/yt-dlp/yt-dlp) on PATH.
+
+Use `youtube/YouTube-60fps.bat`: pass a URL as an argument, or copy the
+address in your browser and run it with no arguments — it reads the
+clipboard.
+
+Two things the generated `mpv.conf` handles for you:
+
+**AV1 is refused.** YouTube serves AV1 by default, and cards before RDNA2 /
+RTX 30 have no hardware decoder for it — the decode lands on the same CPU
+MVTools is using. The `ytdl-format` line picks VP9 or H.264 instead, both of
+which decode in hardware.
+
+**Capped at 1080p**, since anything larger is skipped by the filter anyway.
+
+A browser extension can't do this: motion estimation in JS/WebGL isn't
+viable in real time.
+
 ## Tuning
 
 All settings live at the top of `interpolate.vpy`. Measured on 1080p 10-bit
@@ -233,6 +254,12 @@ vf=vapoursynth=file=%32%G:/Tools/mpv-rife/interpolate.vpy
 
 `32` is the exact character count of the path. Get it wrong and the filter
 just doesn't load. `tools\configure.ps1` computes it.
+
+### Budget by pixel count, not width
+
+A 2.39:1 scope release at 2048x858 is 1.76 MP — *cheaper* than full 1080p at
+2.07 MP. A width limit would wrongly skip it, which is exactly what happened
+with YouTube's widescreen VP9 streams. `MAX_PIXELS` is the honest budget.
 
 ### The filter's sub-options
 

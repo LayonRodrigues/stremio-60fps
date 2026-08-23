@@ -100,7 +100,18 @@ function WriteLua($dest) {
 $mpvConfig = "$Engine\mpv\portable_config"
 if (Test-Path "$Engine\mpv\mpv.exe") {
     New-Item -ItemType Directory -Force -Path "$mpvConfig\scripts" | Out-Null
-    WriteConf "$mpvConfig\mpv.conf" @("vo=gpu-next", "gpu-api=vulkan", "profile=high-quality")
+    $mpvExtras = @(
+        "vo=gpu-next",
+        "gpu-api=vulkan",
+        "profile=high-quality",
+        "",
+        "# YouTube: skip AV1. Cards before RDNA2 / RTX 30 have no hardware",
+        "# decoder for it, so AV1 would land on the CPU that MVTools is",
+        "# already using. VP9 and H.264 decode in hardware instead.",
+        "# Also capped at 1080p, since the filter skips anything wider.",
+        "ytdl-format=bestvideo[vcodec!*=av01][height<=?1080]+bestaudio/best[height<=?1080]"
+    )
+    WriteConf "$mpvConfig\mpv.conf" $mpvExtras
     WriteInput "$mpvConfig\input.conf"
     WriteLua "$mpvConfig\scripts\interpolation.lua"
 } else {

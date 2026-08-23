@@ -35,7 +35,10 @@ ENGINE = "mvtools"     # "mvtools" (recommended here) or "rife"
 TARGET_FPS = 60        # only used if mpv doesn't report the monitor's rate
 FPS_CEILING = 60       # safety cap: the CPU can't sustain more than this
 MAX_INPUT_FPS = 32     # video above this passes through (already smooth)
-MAX_WIDTH = 1920       # above this it passes through (4K won't fit real time)
+# Cost scales with pixel count, not width. A 2.39:1 scope release at
+# 2048x858 is 1.76 MP - cheaper than full 1080p at 2.07 MP - so a width
+# limit would wrongly skip it. 4K (8.3 MP) is what we actually want out.
+MAX_PIXELS = 1920 * 1080
 
 # --- MVTools ---
 # SMOOTHNESS "block": faster, blocky artefacts on strong motion.
@@ -72,7 +75,7 @@ except (NameError, TypeError, ValueError):
 
 worth_it = (
     0 < source_fps < MAX_INPUT_FPS
-    and 0 < clip.width <= MAX_WIDTH
+    and 0 < clip.width * clip.height <= MAX_PIXELS
 )
 
 if not worth_it:
